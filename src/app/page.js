@@ -1,113 +1,188 @@
+"use client";
 import Image from "next/image";
+import React from "react";
+import CodeEditor from '@uiw/react-textarea-code-editor';
+import { IconCopy, IconDownload, IconTrash } from "@tabler/icons-react";
+import Link from "next/link";
+
+
 
 export default function Home() {
+  const [code, setCode] = React.useState('');
+  const [replacements, setReplacements] = React.useState(`{
+  "DB_NAME": "your_db_name",
+  "DB_USER": "your_db_user",
+  "DB_PASSWORD": "your_db_password",
+  "DB_HOST_REPLICA": "your_db_host_replica",
+  "DB_HOST": "your_db_host",
+  "DB_LOGGING": "true",
+  "REDIS_HOST": "127.0.0.1",
+  "SENTRY_ENABLED": "false",
+  "ENABLE_SENTRY": "false"
+}`);
+  const [submittedCode, setSubmittedCode] = React.useState('');
+  const [env, setEnv] = React.useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    setEnv(''); 
+    if (code === '') {
+      setCode('');
+      alert('Please enter a valid JSON code.')
+      return;
+    }
+
+    if (!isValidJSON(code)) {
+      alert('Please enter a valid JSON code.')
+      return;
+    }
+
+    setSubmittedCode(code);
+
+    const json = JSON.parse(code);
+    const envString = jsonToEnv(json);
+    
+    setEnv(envString);
+  }
+
+
+  function jsonToEnv(json) {
+    let envString = '';
+    let replacementJson = {};
+
+    if(!isValidJSON(replacements)){
+      alert('Please enter a valid Replacement JSON code.')
+    } 
+    
+    replacementJson = JSON.parse(replacements);
+    
+
+    for (let key in json) {
+      if (json.hasOwnProperty(key)) {
+        // match key with replacements
+        if (replacementJson[key]) {
+          envString += `${key}=${replacementJson[key]}\n`;
+        } else {
+          envString += `${key}=${json[key]}\n`;
+        }
+      }
+    }
+    return envString;
+  }
+
+  const isValidJSON = str => {
+    try {
+      JSON.parse(str);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+  
+  // convert json to env
+  // display env
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+    // Row>Col*2
+    <div className="p-4">
+      <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-200" role="alert">
+        <span class="font-medium">Info! </span> 
+        This is safety tool to convert JSON to ENV format. We`re not storing any data.
+      </div>
+
+
+      <div className="text-center ">
+
+
+        <div className="grid grid-cols-3 gap-4 ">
+          <div className="text-gray-900 bg-white rounded-xl w-100" >
+            <div className="px-4 py-4 text-left border-b">
+              Source ( JSON Format)
+            </div>
+            <CodeEditor
+              value={code}
+              language="json"
+              placeholder="Please enter JSON code."
+              onChange={(evn) => setCode(evn.target.value)}
+              padding={15}
+              style={{
+                fontSize: 12,
+                fontFamily:
+                  "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace"
+              }}
             />
-          </a>
+          </div>
+          <div className="text-gray-900 bg-white rounded-xl w-100">
+            <div className="px-4 py-4 text-left border-b">
+              Repacements ( JSON Format)
+            </div>
+            <CodeEditor
+              language="json"
+              placeholder="Please enter JSON code."
+              onChange={(evn) => setReplacements(evn.target.value)}
+              padding={15}
+              value={replacements}
+              style={{
+                fontSize: 12,
+
+                fontFamily:
+                  "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace"
+              }}
+            />
+          </div>
+          <div className="text-gray-900 bg-white w-100 rounded-xl">
+            <div className="flex justify-between px-4 py-4 border-b">
+              <div>
+                Result ( ENV Format)
+              </div>
+              <div>
+
+                {/* copy */}
+                {env && (
+                  <div className="flex gap-2">
+                    <button className="px-4 py-2 text-gray-100 bg-gray-500 rounded-full hover:bg-gray-900 hover:text-white" onClick={() => setEnv('')}>
+                      <IconTrash size={12}/>
+                    </button>
+                    <button className="px-4 py-2 text-gray-100 bg-gray-500 rounded-full hover:bg-gray-900 hover:text-white" onClick={() => navigator.clipboard.writeText(env)}>
+                    <IconCopy size={12}/>
+                    </button>
+                    {/* download to file */}
+                    <a
+                      href={`data:text/plain;charset=utf-8,${encodeURIComponent(env)}`}
+                      download="env.txt"
+                      className="px-4 py-2 text-gray-100 bg-gray-500 rounded-full hover:bg-gray-900 hover:text-white"
+                    >
+                      <IconDownload size={12}/>
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <CodeEditor
+              language="env"
+              placeholder="Result will appear here."
+              padding={15}
+              value={env}
+              style={{
+                fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+              }}
+            />
+          </div>
         </div>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+      <div className="p-4 text-center ">
+        <button className="px-8 py-2 text-gray-900 bg-white rounded-full hover:bg-gray-500 hover:text-white" onClick={handleSubmit}>
+          Convert
+        </button>
       </div>
+      <h2 className="mt-4 mb-2 text-2xl font-semibold">
+        Thanks for using <span className="text-blue-500">Env Formatter</span>! 🚀
+      </h2>
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+    </div>
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
   );
 }
