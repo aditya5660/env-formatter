@@ -1,14 +1,11 @@
 // pages/switchenv-installation.js
-
+"use client";
 import React from 'react';
 import Head from 'next/head';
 
 const SwitchenvInstallation = () => {
     return (
         <div className="min-h-screen p-4 ">
-            <Head>
-                <title>Switchenv Installation</title>
-            </Head>
             
             <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-200" role="alert">
                 <span class="font-medium">Info! </span> 

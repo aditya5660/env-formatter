@@ -3,14 +3,8 @@ import {
     Disclosure,
     DisclosureButton,
     DisclosurePanel,
-    Menu,
-    MenuButton,
-    MenuItem,
-    MenuItems,
-    Transition,
 } from '@headlessui/react'
-import Image from 'next/image'
-import { IconBell, IconMenu, IconX } from '@tabler/icons-react'
+import { IconMenu, IconX } from '@tabler/icons-react'
 
 const navigation = [
     { name: 'Env Formatter', href: '/', current: true },
@@ -19,11 +13,11 @@ const navigation = [
 
 // check current page
 navigation.map((item) => {
-    if (window.location.pathname === item.href) {
-        item.current = true
-    } else {
-        item.current = false
-    }
+    // if (window.location.pathname === item.href) {
+    //     item.current = true
+    // } else {
+    //     item.current = false
+    // }
 })
 
 function classNames(...classes) {
