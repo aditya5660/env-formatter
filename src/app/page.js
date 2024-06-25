@@ -22,19 +22,24 @@ export default function Home() {
 }`);
   const [submittedCode, setSubmittedCode] = React.useState('');
   const [env, setEnv] = React.useState('');
+  const [cardSourceClassName, setCardSourceClassName] = React.useState('text-gray-900 bg-white w-100 rounded-xl');
+  const [cardReplacementClassName, setCardReplacementClassName] = React.useState('text-gray-900 bg-white w-100 rounded-xl');
+  const [notify, setNotify] = React.useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    setCardSourceClassName('text-gray-900 bg-white w-100 rounded-xl');
     setEnv(''); 
     if (code === '') {
       setCode('');
-      alert('Please enter a valid JSON code.')
+      setNotify('Please enter JSON code.');
+      setCardSourceClassName('text-gray-900 bg-white w-100 rounded-xl border-2 border-red-500');
       return;
     }
 
     if (!isValidJSON(code)) {
-      alert('Please enter a valid JSON code.')
+      setNotify('Invalid JSON format.');
+      setCardSourceClassName('text-gray-900 bg-white w-100 rounded-xl border-2 border-red-500');
       return;
     }
 
@@ -44,6 +49,7 @@ export default function Home() {
     const envString = jsonToEnv(json);
     
     setEnv(envString);
+    setNotify('');
   }
 
 
@@ -52,7 +58,8 @@ export default function Home() {
     let replacementJson = {};
 
     if(!isValidJSON(replacements)){
-      alert('Please enter a valid Replacement JSON code.')
+      setNotify('Invalid JSON format for replacements.');
+      setCardReplacementClassName('text-gray-900 bg-white w-100 rounded-xl border-2 border-red-500');
     } 
     
     replacementJson = JSON.parse(replacements);
@@ -91,12 +98,18 @@ export default function Home() {
         This is safety tool to convert JSON to ENV format. We`re not storing any data.
       </div>
 
+      {notify && (
+        <div className="p-4 mb-4 text-sm text-red-800 bg-red-200 rounded-lg" role="alert">
+          <span class="font-medium">Error! </span> {notify}
+        </div>
+      )}
+
 
       <div className="text-center ">
 
 
         <div className="grid grid-cols-3 gap-4 ">
-          <div className="text-gray-900 bg-white rounded-xl w-100" >
+          <div className={cardSourceClassName} >
             <div className="px-4 py-4 text-left border-b">
               Source ( JSON Format)
             </div>
@@ -113,7 +126,7 @@ export default function Home() {
               }}
             />
           </div>
-          <div className="text-gray-900 bg-white rounded-xl w-100">
+          <div className={cardReplacementClassName}>
             <div className="px-4 py-4 text-left border-b">
               Repacements ( JSON Format)
             </div>
